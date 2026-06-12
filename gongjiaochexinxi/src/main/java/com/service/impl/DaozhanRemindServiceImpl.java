@@ -54,23 +54,27 @@ public class DaozhanRemindServiceImpl extends ServiceImpl<DaozhanRemindDao, Daoz
             return "站点名称不能为空";
         }
 
+        String normalized = normalizeStopName(stopName);
+
         // 检查是否已存在相同订阅（同一用户、同一线路、同一站点、未触发的）
+        // 取出该线路该用户的所有未触发订阅，用归一化名称比对，防止破折号/空格差异导致重复订阅
         Wrapper<DaozhanRemindEntity> queryWrapper = new EntityWrapper<DaozhanRemindEntity>()
             .eq("yonghu_id", yonghuId)
             .eq("gongjiaoxianlu_id", gongjiaoxianluId)
-            .eq("stop_name", stopName.trim())
             .eq("remind_status", 0);
 
-        DaozhanRemindEntity existing = this.selectOne(queryWrapper);
-        if(existing != null){
-            return "您已订阅该线路该站点的到站提醒，无需重复订阅";
+        List<DaozhanRemindEntity> existingList = this.selectList(queryWrapper);
+        for(DaozhanRemindEntity ex : existingList){
+            if(normalizeStopName(ex.getStopName()).equals(normalized)){
+                return "您已订阅该线路该站点的到站提醒，无需重复订阅";
+            }
         }
 
-        // 创建新订阅
+        // 创建新订阅（存储归一化后的站名，保证后续触发匹配一致）
         DaozhanRemindEntity entity = new DaozhanRemindEntity();
         entity.setYonghuId(yonghuId);
         entity.setGongjiaoxianluId(gongjiaoxianluId);
-        entity.setStopName(stopName.trim());
+        entity.setStopName(normalized);
         entity.setRemindStatus(0);
         entity.setCreateTime(new Date());
         this.insert(entity);
@@ -122,20 +126,22 @@ public class DaozhanRemindServiceImpl extends ServiceImpl<DaozhanRemindDao, Daoz
             return 0;
         }
 
-        // 查找该线路该站点的所有未触发订阅
+        // 查找该线路所有未触发订阅，用归一化站名匹配（避免破折号/空格差异导致提醒不触发）
+        String normalizedStop = normalizeStopName(stopName);
         Wrapper<DaozhanRemindEntity> queryWrapper = new EntityWrapper<DaozhanRemindEntity>()
             .eq("gongjiaoxianlu_id", gongjiaoxianluId)
-            .eq("stop_name", stopName.trim())
             .eq("remind_status", 0);
 
         List<DaozhanRemindEntity> subscriptions = this.selectList(queryWrapper);
         int triggeredCount = 0;
 
         for(DaozhanRemindEntity sub : subscriptions){
-            sub.setRemindStatus(1);
-            sub.setTriggerTime(new Date());
-            this.updateById(sub);
-            triggeredCount++;
+            if(normalizeStopName(sub.getStopName()).equals(normalizedStop)){
+                sub.setRemindStatus(1);
+                sub.setTriggerTime(new Date());
+                this.updateById(sub);
+                triggeredCount++;
+            }
         }
 
         return triggeredCount;
@@ -151,6 +157,21 @@ public class DaozhanRemindServiceImpl extends ServiceImpl<DaozhanRemindDao, Daoz
             .eq("remind_status", 1)
             .orderBy("trigger_time", false);
         return this.selectList(queryWrapper);
+    }
+
+    /**
+     * 归一化站点名称，消除破折号类型、空格等差异
+     * 例如 "大学城 — 北门" 和 "大学城-北门" 归一化后相同
+     */
+    private String normalizeStopName(String name) {
+        if(name == null) return "";
+        // 各类破折号/连字符统一为标准半角连字符
+        String normalized = name.replaceAll("[—–－‐‑⁃﹣\\u2014\\u2013\\uFF0D]", "-");
+        // 去除连字符两侧空格
+        normalized = normalized.replaceAll("\\s*-\\s*", "-");
+        // 合并连续空白
+        normalized = normalized.replaceAll("\\s+", " ");
+        return normalized.trim();
     }
 
 }

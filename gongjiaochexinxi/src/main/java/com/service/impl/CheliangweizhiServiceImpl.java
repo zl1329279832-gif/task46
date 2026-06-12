@@ -159,14 +159,12 @@ public class CheliangweizhiServiceImpl extends ServiceImpl<CheliangweizhiDao, Ch
                 stops = cleaned.split("->");
             } else if(cleaned.contains("→")) {
                 stops = cleaned.split("→");
-            } else if(cleaned.contains("-")) {
-                stops = cleaned.split("-");
             } else if(cleaned.contains("，")) {
                 stops = cleaned.split("，");
             } else if(cleaned.contains(",")) {
                 stops = cleaned.split(",");
             } else {
-                // 无法解析为站点列表
+                // 不使用单独的"-"做分隔符，因为站名本身可能含"-"（如"大学城-北门"）
                 return null;
             }
 
@@ -198,12 +196,22 @@ public class CheliangweizhiServiceImpl extends ServiceImpl<CheliangweizhiDao, Ch
             return null;
         }
 
-        // 在站点列表中查找当前下一站的位置
+        // 在站点列表中查找当前下一站的位置（优先精确匹配，避免"北门"误匹配"东北门"）
+        String trimmedName = nextStopName.trim();
         int currentIndex = -1;
         for(int i = 0; i < routeStops.size(); i++){
-            if(routeStops.get(i).contains(nextStopName) || nextStopName.contains(routeStops.get(i))){
+            if(routeStops.get(i).equals(trimmedName)){
                 currentIndex = i;
                 break;
+            }
+        }
+        // 精确匹配失败时使用包含匹配兜底
+        if(currentIndex < 0){
+            for(int i = 0; i < routeStops.size(); i++){
+                if(routeStops.get(i).contains(trimmedName) || trimmedName.contains(routeStops.get(i))){
+                    currentIndex = i;
+                    break;
+                }
             }
         }
 
