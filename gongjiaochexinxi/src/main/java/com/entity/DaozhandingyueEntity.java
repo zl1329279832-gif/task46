@@ -21,21 +21,21 @@ import com.baomidou.mybatisplus.enums.FieldFill;
 import com.baomidou.mybatisplus.enums.IdType;
 
 /**
- * 位置信息
+ * 到站订阅
  *
- * @author 
+ * @author
  * @email
  */
-@TableName("cheliangweizhi")
-public class CheliangweizhiEntity<T> implements Serializable {
+@TableName("daozhandingyue")
+public class DaozhandingyueEntity<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
-	public CheliangweizhiEntity() {
+	public DaozhandingyueEntity() {
 
 	}
 
-	public CheliangweizhiEntity(T t) {
+	public DaozhandingyueEntity(T t) {
 		try {
 			BeanUtils.copyProperties(this, t);
 		} catch (IllegalAccessException | InvocationTargetException e) {
@@ -55,15 +55,15 @@ public class CheliangweizhiEntity<T> implements Serializable {
 
 
     /**
-     * 车辆
+     * 用户id
      */
-    @TableField(value = "gongjiaoche_id")
+    @TableField(value = "yonghu_id")
 
-    private Integer gongjiaocheId;
+    private Integer yonghuId;
 
 
     /**
-     * 所属线路
+     * 线路id
      */
     @TableField(value = "gongjiaoxianlu_id")
 
@@ -71,35 +71,35 @@ public class CheliangweizhiEntity<T> implements Serializable {
 
 
     /**
-     * 大体位置
+     * 站点名称
      */
-    @TableField(value = "cheliangweizhi_dati")
+    @TableField(value = "zhandian_name")
 
-    private String cheliangweizhiDati;
+    private String zhandianName;
 
 
     /**
-     * 行驶方向
+     * 订阅状态 1=订阅中 2=已触发 3=已取消
      */
-    @TableField(value = "cheliangweizhi_fangxiang")
+    @TableField(value = "dingyue_status")
 
-    private String cheliangweizhiFangxiang;
+    private Integer dingyueStatus;
 
 
     /**
-     * 下一站名称
+     * 提醒状态 0=未提醒 1=已提醒
      */
-    @TableField(value = "cheliangweizhi_mingcheng")
+    @TableField(value = "tixing_status")
 
-    private String cheliangweizhiMingcheng;
+    private Integer tixingStatus;
 
 
     /**
-     * 路线详情
+     * 提醒信息
      */
-    @TableField(value = "cheliangweizhi_content")
+    @TableField(value = "tixing_content")
 
-    private String cheliangweizhiContent;
+    private String tixingContent;
 
 
     /**
@@ -110,6 +110,16 @@ public class CheliangweizhiEntity<T> implements Serializable {
     @TableField(value = "create_time",fill = FieldFill.INSERT)
 
     private Date createTime;
+
+
+    /**
+     * 更新时间
+     */
+    @JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat
+    @TableField(value = "update_time")
+
+    private Date updateTime;
 
 
     /**
@@ -126,82 +136,82 @@ public class CheliangweizhiEntity<T> implements Serializable {
         this.id = id;
     }
     /**
-	 * 设置：车辆
+	 * 设置：用户id
 	 */
-    public Integer getGongjiaocheId() {
-        return gongjiaocheId;
+    public Integer getYonghuId() {
+        return yonghuId;
     }
     /**
-	 * 获取：车辆
+	 * 获取：用户id
 	 */
 
-    public void setGongjiaocheId(Integer gongjiaocheId) {
-        this.gongjiaocheId = gongjiaocheId;
+    public void setYonghuId(Integer yonghuId) {
+        this.yonghuId = yonghuId;
     }
     /**
-	 * 设置：所属线路
+	 * 设置：线路id
 	 */
     public Integer getGongjiaoxianluId() {
         return gongjiaoxianluId;
     }
     /**
-	 * 获取：所属线路
+	 * 获取：线路id
 	 */
 
     public void setGongjiaoxianluId(Integer gongjiaoxianluId) {
         this.gongjiaoxianluId = gongjiaoxianluId;
     }
     /**
-	 * 设置：大体位置
+	 * 设置：站点名称
 	 */
-    public String getCheliangweizhiDati() {
-        return cheliangweizhiDati;
+    public String getZhandianName() {
+        return zhandianName;
     }
     /**
-	 * 获取：大体位置
+	 * 获取：站点名称
 	 */
 
-    public void setCheliangweizhiDati(String cheliangweizhiDati) {
-        this.cheliangweizhiDati = cheliangweizhiDati;
+    public void setZhandianName(String zhandianName) {
+        this.zhandianName = zhandianName;
     }
     /**
-	 * 设置：行驶方向
+	 * 设置：订阅状态
 	 */
-    public String getCheliangweizhiFangxiang() {
-        return cheliangweizhiFangxiang;
+    public Integer getDingyueStatus() {
+        return dingyueStatus;
     }
     /**
-	 * 获取：行驶方向
-	 */
-
-    public void setCheliangweizhiFangxiang(String cheliangweizhiFangxiang) {
-        this.cheliangweizhiFangxiang = cheliangweizhiFangxiang;
-    }
-    /**
-	 * 设置：下一站名称
-	 */
-    public String getCheliangweizhiMingcheng() {
-        return cheliangweizhiMingcheng;
-    }
-    /**
-	 * 获取：下一站名称
+	 * 获取：订阅状态
 	 */
 
-    public void setCheliangweizhiMingcheng(String cheliangweizhiMingcheng) {
-        this.cheliangweizhiMingcheng = cheliangweizhiMingcheng;
+    public void setDingyueStatus(Integer dingyueStatus) {
+        this.dingyueStatus = dingyueStatus;
     }
     /**
-	 * 设置：路线详情
+	 * 设置：提醒状态
 	 */
-    public String getCheliangweizhiContent() {
-        return cheliangweizhiContent;
+    public Integer getTixingStatus() {
+        return tixingStatus;
     }
     /**
-	 * 获取：路线详情
+	 * 获取：提醒状态
 	 */
 
-    public void setCheliangweizhiContent(String cheliangweizhiContent) {
-        this.cheliangweizhiContent = cheliangweizhiContent;
+    public void setTixingStatus(Integer tixingStatus) {
+        this.tixingStatus = tixingStatus;
+    }
+    /**
+	 * 设置：提醒信息
+	 */
+    public String getTixingContent() {
+        return tixingContent;
+    }
+    /**
+	 * 获取：提醒信息
+	 */
+
+    public void setTixingContent(String tixingContent) {
+        this.tixingContent = tixingContent;
     }
     /**
 	 * 设置：创建时间
@@ -216,18 +226,32 @@ public class CheliangweizhiEntity<T> implements Serializable {
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
+    /**
+	 * 设置：更新时间
+	 */
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+    /**
+	 * 获取：更新时间
+	 */
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 
     @Override
     public String toString() {
-        return "Cheliangweizhi{" +
+        return "Daozhandingyue{" +
             "id=" + id +
-            ", gongjiaocheId=" + gongjiaocheId +
+            ", yonghuId=" + yonghuId +
             ", gongjiaoxianluId=" + gongjiaoxianluId +
-            ", cheliangweizhiDati=" + cheliangweizhiDati +
-            ", cheliangweizhiFangxiang=" + cheliangweizhiFangxiang +
-            ", cheliangweizhiMingcheng=" + cheliangweizhiMingcheng +
-            ", cheliangweizhiContent=" + cheliangweizhiContent +
+            ", zhandianName=" + zhandianName +
+            ", dingyueStatus=" + dingyueStatus +
+            ", tixingStatus=" + tixingStatus +
+            ", tixingContent=" + tixingContent +
             ", createTime=" + createTime +
+            ", updateTime=" + updateTime +
         "}";
     }
 }

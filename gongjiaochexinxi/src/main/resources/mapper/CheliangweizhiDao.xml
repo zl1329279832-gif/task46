@@ -6,6 +6,7 @@
     <sql id="Base_Column_List">
         a.id as id
         ,a.gongjiaoche_id as gongjiaocheId
+        ,a.gongjiaoxianlu_id as gongjiaoxianluId
         ,a.cheliangweizhi_dati as cheliangweizhiDati
         ,a.cheliangweizhi_fangxiang as cheliangweizhiFangxiang
         ,a.cheliangweizhi_mingcheng as cheliangweizhiMingcheng
@@ -34,6 +35,11 @@
             <if test="params.gongjiaocheId != null and params.gongjiaocheId != ''">
                 and (
                     a.gongjiaoche_id = #{params.gongjiaocheId}
+                )
+            </if>
+            <if test="params.gongjiaoxianluId != null and params.gongjiaoxianluId != ''">
+                and (
+                    a.gongjiaoxianlu_id = #{params.gongjiaoxianluId}
                 )
             </if>
             <if test=" params.cheliangweizhiDati != '' and params.cheliangweizhiDati != null and params.cheliangweizhiDati != 'null' ">

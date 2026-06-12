@@ -58,6 +58,9 @@ public class CheliangweizhiController {
     private GongjiaocheService gongjiaocheService;
 
     @Autowired
+    private DaozhandingyueService daozhandingyueService;
+
+    @Autowired
     private YonghuService yonghuService;
 
 
@@ -136,6 +139,23 @@ public class CheliangweizhiController {
         if(cheliangweizhiEntity==null){
             cheliangweizhi.setCreateTime(new Date());
             cheliangweizhiService.insert(cheliangweizhi);
+
+            // 新增车辆位置后，检查是否需要触发到站提醒
+            if(cheliangweizhi.getGongjiaoxianluId() != null && cheliangweizhi.getCheliangweizhiMingcheng() != null){
+                String gongjiaocheName = "";
+                if(cheliangweizhi.getGongjiaocheId() != null){
+                    GongjiaocheEntity che = gongjiaocheService.selectById(cheliangweizhi.getGongjiaocheId());
+                    if(che != null){
+                        gongjiaocheName = che.getGongjiaocheName();
+                    }
+                }
+                daozhandingyueService.checkAndTriggerArrivalNotify(
+                    cheliangweizhi.getGongjiaoxianluId(),
+                    cheliangweizhi.getCheliangweizhiMingcheng(),
+                    gongjiaocheName
+                );
+            }
+
             return R.ok();
         }else {
             return R.error(511,"表中有相同数据");
@@ -166,6 +186,23 @@ public class CheliangweizhiController {
         CheliangweizhiEntity cheliangweizhiEntity = cheliangweizhiService.selectOne(queryWrapper);
         if(cheliangweizhiEntity==null){
             cheliangweizhiService.updateById(cheliangweizhi);//根据id更新
+
+            // 车辆位置更新后，检查是否需要触发到站提醒
+            if(cheliangweizhi.getGongjiaoxianluId() != null && cheliangweizhi.getCheliangweizhiMingcheng() != null){
+                String gongjiaocheName = "";
+                if(cheliangweizhi.getGongjiaocheId() != null){
+                    GongjiaocheEntity che = gongjiaocheService.selectById(cheliangweizhi.getGongjiaocheId());
+                    if(che != null){
+                        gongjiaocheName = che.getGongjiaocheName();
+                    }
+                }
+                daozhandingyueService.checkAndTriggerArrivalNotify(
+                    cheliangweizhi.getGongjiaoxianluId(),
+                    cheliangweizhi.getCheliangweizhiMingcheng(),
+                    gongjiaocheName
+                );
+            }
+
             return R.ok();
         }else {
             return R.error(511,"表中有相同数据");
