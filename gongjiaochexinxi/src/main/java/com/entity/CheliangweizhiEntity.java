@@ -87,6 +87,14 @@ public class CheliangweizhiEntity<T> implements Serializable {
 
 
     /**
+     * 所属线路
+     */
+    @TableField(value = "gongjiaoxianlu_id")
+
+    private Integer gongjiaoxianluId;
+
+
+    /**
      * 路线详情
      */
     @TableField(value = "cheliangweizhi_content")
@@ -170,6 +178,19 @@ public class CheliangweizhiEntity<T> implements Serializable {
         this.cheliangweizhiMingcheng = cheliangweizhiMingcheng;
     }
     /**
+	 * 设置：所属线路
+	 */
+    public Integer getGongjiaoxianluId() {
+        return gongjiaoxianluId;
+    }
+    /**
+	 * 获取：所属线路
+	 */
+
+    public void setGongjiaoxianluId(Integer gongjiaoxianluId) {
+        this.gongjiaoxianluId = gongjiaoxianluId;
+    }
+    /**
 	 * 设置：路线详情
 	 */
     public String getCheliangweizhiContent() {
@@ -204,6 +225,7 @@ public class CheliangweizhiEntity<T> implements Serializable {
             ", cheliangweizhiDati=" + cheliangweizhiDati +
             ", cheliangweizhiFangxiang=" + cheliangweizhiFangxiang +
             ", cheliangweizhiMingcheng=" + cheliangweizhiMingcheng +
+            ", gongjiaoxianluId=" + gongjiaoxianluId +
             ", cheliangweizhiContent=" + cheliangweizhiContent +
             ", createTime=" + createTime +
         "}";

@@ -27,6 +27,7 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.entity.*;
 import com.entity.view.*;
+import com.entity.vo.BusLocationVO;
 import com.service.*;
 import com.utils.PageUtils;
 import com.utils.R;
@@ -56,9 +57,14 @@ public class CheliangweizhiController {
     //级联表service
     @Autowired
     private GongjiaocheService gongjiaocheService;
+    @Autowired
+    private GongjiaoxianluService gongjiaoxianluService;
 
     @Autowired
     private YonghuService yonghuService;
+
+    @Autowired
+    private DaozhanRemindService daozhanRemindService;
 
 
     /**
@@ -104,6 +110,14 @@ public class CheliangweizhiController {
                     BeanUtils.copyProperties( gongjiaoche , view ,new String[]{ "id", "createTime", "insertTime", "updateTime"});//把级联的数据添加到view中,并排除id和创建时间字段
                     view.setGongjiaocheId(gongjiaoche.getId());
                 }
+                //级联表-线路
+                if(cheliangweizhi.getGongjiaoxianluId() != null){
+                    GongjiaoxianluEntity gongjiaoxianlu = gongjiaoxianluService.selectById(cheliangweizhi.getGongjiaoxianluId());
+                    if(gongjiaoxianlu != null){
+                        view.setGongjiaoxianluName(gongjiaoxianlu.getGongjiaoxianluName());
+                        view.setQuancheng(gongjiaoxianlu.getQuancheng());
+                    }
+                }
             //修改对应字典表字段
             dictionaryService.dictionaryConvert(view, request);
             return R.ok().put("data", view);
@@ -136,6 +150,19 @@ public class CheliangweizhiController {
         if(cheliangweizhiEntity==null){
             cheliangweizhi.setCreateTime(new Date());
             cheliangweizhiService.insert(cheliangweizhi);
+
+            // 新增位置后检查到站提醒
+            if(cheliangweizhi.getGongjiaoxianluId() != null
+                    && cheliangweizhi.getCheliangweizhiMingcheng() != null){
+                int triggered = daozhanRemindService.checkAndTriggerReminders(
+                    cheliangweizhi.getGongjiaoxianluId(),
+                    cheliangweizhi.getCheliangweizhiMingcheng()
+                );
+                if(triggered > 0){
+                    logger.info("新增车辆位置触发{}条到站提醒", triggered);
+                }
+            }
+
             return R.ok();
         }else {
             return R.error(511,"表中有相同数据");
@@ -144,6 +171,7 @@ public class CheliangweizhiController {
 
     /**
     * 后端修改
+    * 场景：管理员更新车辆位置后触发提醒状态变化
     */
     @RequestMapping("/update")
     public R update(@RequestBody CheliangweizhiEntity cheliangweizhi, HttpServletRequest request){
@@ -166,6 +194,19 @@ public class CheliangweizhiController {
         CheliangweizhiEntity cheliangweizhiEntity = cheliangweizhiService.selectOne(queryWrapper);
         if(cheliangweizhiEntity==null){
             cheliangweizhiService.updateById(cheliangweizhi);//根据id更新
+
+            // 管理员更新车辆位置后，检查到站提醒触发
+            if(cheliangweizhi.getGongjiaoxianluId() != null
+                    && cheliangweizhi.getCheliangweizhiMingcheng() != null){
+                int triggered = daozhanRemindService.checkAndTriggerReminders(
+                    cheliangweizhi.getGongjiaoxianluId(),
+                    cheliangweizhi.getCheliangweizhiMingcheng()
+                );
+                if(triggered > 0){
+                    logger.info("更新车辆位置触发{}条到站提醒", triggered);
+                }
+            }
+
             return R.ok();
         }else {
             return R.error(511,"表中有相同数据");
@@ -214,6 +255,7 @@ public class CheliangweizhiController {
                             //循环
                             CheliangweizhiEntity cheliangweizhiEntity = new CheliangweizhiEntity();
 //                            cheliangweizhiEntity.setGongjiaocheId(Integer.valueOf(data.get(0)));   //车辆 要改的
+//                            cheliangweizhiEntity.setGongjiaoxianluId(Integer.valueOf(data.get(0)));   //所属线路 要改的
 //                            cheliangweizhiEntity.setCheliangweizhiDati(data.get(0));                    //大体位置 要改的
 //                            cheliangweizhiEntity.setCheliangweizhiFangxiang(data.get(0));                    //行驶方向 要改的
 //                            cheliangweizhiEntity.setCheliangweizhiMingcheng(data.get(0));                    //下一站名称 要改的
@@ -238,8 +280,32 @@ public class CheliangweizhiController {
     }
 
 
+    /**
+     * 按线路查询实时车辆位置列表
+     * 普通用户接口：根据公交线路ID查询当前该线路上所有车辆的位置信息
+     *
+     * 返回信息包括：车辆大体位置、行驶方向、下一站名称、更新时间、预计到站时间
+     * 处理场景：车辆位置过期（标记expired）、线路详情无法解析（ETA为null）
+     */
+    @RequestMapping("/busLocations")
+    public R busLocations(@RequestParam Integer gongjiaoxianluId, HttpServletRequest request){
+        logger.debug("busLocations方法:,,Controller:{},,gongjiaoxianluId:{}",this.getClass().getName(),gongjiaoxianluId);
 
+        if(gongjiaoxianluId == null){
+            return R.error(511,"线路ID不能为空");
+        }
 
+        // 校验线路是否存在
+        GongjiaoxianluEntity route = gongjiaoxianluService.selectById(gongjiaoxianluId);
+        if(route == null){
+            return R.error(511,"线路不存在或已被删除");
+        }
+
+        // 查询实时位置
+        List<BusLocationVO> locations = cheliangweizhiService.findBusLocationsByRoute(gongjiaoxianluId);
+
+        return R.ok().put("data", locations);
+    }
 
 
 }

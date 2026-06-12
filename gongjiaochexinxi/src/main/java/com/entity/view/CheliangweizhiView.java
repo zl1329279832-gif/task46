@@ -39,6 +39,16 @@ public class CheliangweizhiView extends CheliangweizhiEntity implements Serializ
 			*/
 			private String gongjiaocheContent;
 
+		//级联表 gongjiaoxianlu
+			/**
+			* 线路名称
+			*/
+			private String gongjiaoxianluName;
+			/**
+			* 全程
+			*/
+			private String quancheng;
+
 	public CheliangweizhiView() {
 
 	}
@@ -118,14 +128,33 @@ public class CheliangweizhiView extends CheliangweizhiEntity implements Serializ
 					}
 
 
+				//级联表的get和set gongjiaoxianlu
 
+					/**
+					* 获取： 线路名称
+					*/
+					public String getGongjiaoxianluName() {
+						return gongjiaoxianluName;
+					}
+					/**
+					* 设置： 线路名称
+					*/
+					public void setGongjiaoxianluName(String gongjiaoxianluName) {
+						this.gongjiaoxianluName = gongjiaoxianluName;
+					}
 
-
-
-
-
-
-
+					/**
+					* 获取： 全程
+					*/
+					public String getQuancheng() {
+						return quancheng;
+					}
+					/**
+					* 设置： 全程
+					*/
+					public void setQuancheng(String quancheng) {
+						this.quancheng = quancheng;
+					}
 
 
 }
