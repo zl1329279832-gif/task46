@@ -122,20 +122,30 @@ public class DaozhanRemindServiceImpl extends ServiceImpl<DaozhanRemindDao, Daoz
             return 0;
         }
 
-        // 查找该线路该站点的所有未触发订阅
+        // 查找该线路所有未触发订阅（不在此处过滤站名，改用Java层模糊匹配）
+        // 司机报站名与用户订阅名可能有差异（如"大学城-北门" vs "北门"），精确匹配会漏掉
         Wrapper<DaozhanRemindEntity> queryWrapper = new EntityWrapper<DaozhanRemindEntity>()
             .eq("gongjiaoxianlu_id", gongjiaoxianluId)
-            .eq("stop_name", stopName.trim())
             .eq("remind_status", 0);
 
         List<DaozhanRemindEntity> subscriptions = this.selectList(queryWrapper);
         int triggeredCount = 0;
+        String trimmedStopName = stopName.trim();
 
         for(DaozhanRemindEntity sub : subscriptions){
-            sub.setRemindStatus(1);
-            sub.setTriggerTime(new Date());
-            this.updateById(sub);
-            triggeredCount++;
+            String subStopName = sub.getStopName();
+            if(subStopName == null){
+                continue;
+            }
+            // 模糊匹配：精确匹配 或 双向子串包含
+            if(subStopName.equals(trimmedStopName)
+                    || subStopName.contains(trimmedStopName)
+                    || trimmedStopName.contains(subStopName)){
+                sub.setRemindStatus(1);
+                sub.setTriggerTime(new Date());
+                this.updateById(sub);
+                triggeredCount++;
+            }
         }
 
         return triggeredCount;

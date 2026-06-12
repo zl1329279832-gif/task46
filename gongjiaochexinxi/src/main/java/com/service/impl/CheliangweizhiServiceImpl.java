@@ -137,7 +137,8 @@ public class CheliangweizhiServiceImpl extends ServiceImpl<CheliangweizhiDao, Ch
 
     /**
      * 解析线路全程字段，提取站点列表
-     * 支持的分隔符：-> 、 → 、 - 、 ， 、 , 、 空格
+     * 支持的分隔符：-> 、 → 、 ， 、 ,
+     * 注意：- 不作为独立分隔符，因为站名中可能包含短横线（如"大学城-北门"）
      *
      * 场景：线路详情无法解析时返回null
      */
@@ -153,14 +154,13 @@ public class CheliangweizhiServiceImpl extends ServiceImpl<CheliangweizhiDao, Ch
                 return null;
             }
 
-            // 尝试多种分隔符
+            // 尝试多种分隔符（优先级：-> > → > ， > ,）
+            // 注意：- 不能作为独立分隔符，因为站名本身可能包含短横线（如"大学城-北门"）
             String[] stops;
             if(cleaned.contains("->")) {
                 stops = cleaned.split("->");
             } else if(cleaned.contains("→")) {
                 stops = cleaned.split("→");
-            } else if(cleaned.contains("-")) {
-                stops = cleaned.split("-");
             } else if(cleaned.contains("，")) {
                 stops = cleaned.split("，");
             } else if(cleaned.contains(",")) {
@@ -199,12 +199,31 @@ public class CheliangweizhiServiceImpl extends ServiceImpl<CheliangweizhiDao, Ch
         }
 
         // 在站点列表中查找当前下一站的位置
+        // 第一遍：精确匹配（最可靠）
         int currentIndex = -1;
         for(int i = 0; i < routeStops.size(); i++){
-            if(routeStops.get(i).contains(nextStopName) || nextStopName.contains(routeStops.get(i))){
+            if(routeStops.get(i).equals(nextStopName)){
                 currentIndex = i;
                 break;
             }
+        }
+
+        // 第二遍：模糊匹配（处理站名略有差异的情况）
+        // 多个模糊命中时选长度最接近的，减少短站名误匹配
+        if(currentIndex < 0){
+            int bestIndex = -1;
+            int bestLenDiff = Integer.MAX_VALUE;
+            for(int i = 0; i < routeStops.size(); i++){
+                String stop = routeStops.get(i);
+                if(stop.contains(nextStopName) || nextStopName.contains(stop)){
+                    int lenDiff = Math.abs(stop.length() - nextStopName.length());
+                    if(lenDiff < bestLenDiff){
+                        bestLenDiff = lenDiff;
+                        bestIndex = i;
+                    }
+                }
+            }
+            currentIndex = bestIndex;
         }
 
         if(currentIndex < 0){
